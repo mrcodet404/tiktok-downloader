@@ -1,4 +1,8 @@
-
+"dependencies": {
+  "axios": "^...",
+  "discord.js": "^...",
+  "dotenv": "^..."
+}
 
 {
   "name": "tiktok-bot",
