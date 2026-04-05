@@ -17,12 +17,18 @@ const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 
 // Validasi environment variables
-if (!TOKEN || !CLIENT_ID) {
-  console.error(
-    "❌ ERROR: DISCORD_TOKEN dan CLIENT_ID harus diset di environment variables!"
-  );
-  process.exit(1);
-}
+// HAPUS atau COMMENT bagian ini dulu untuk test
+// if (!TOKEN || !CLIENT_ID) {
+//   console.error("❌ ERROR: DISCORD_TOKEN dan CLIENT_ID harus diset!")
+//   process.exit(1);
+// }
+
+// Ganti dengan ini untuk debug
+console.log("🔍 DEBUG ENV CHECK:");
+console.log("TOKEN ada?", !!process.env.DISCORD_TOKEN);
+console.log("CLIENT_ID ada?", !!process.env.CLIENT_ID);
+console.log("TOKEN (5 karakter pertama):", process.env.DISCORD_TOKEN?.substring(0, 5));
+console.log("CLIENT_ID value:", process.env.CLIENT_ID);
 
 // ============================================
 // INISIALISASI CLIENT DISCORD
