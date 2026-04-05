@@ -265,17 +265,11 @@ async function getVideoSize(url) {
 // ============================================
 // FUNGSI: KIRIM VIDEO KE DISCORD
 // ============================================
+// ============================================
+// FUNGSI: KIRIM VIDEO KE DISCORD (VERSI BARU - SELALU LINK)
+// ============================================
 async function sendVideoToDiscord(interaction, videoData, originalUrl) {
-  // Batas upload Discord: 25MB untuk server biasa, 50MB untuk Nitro
-  const MAX_SIZE_BYTES = 25 * 1024 * 1024; // 25MB
-
-  // Cek ukuran video
-  const videoSize = await getVideoSize(videoData.videoUrl);
-  const videoSizeMB = (videoSize / (1024 * 1024)).toFixed(2);
-
-  console.log(
-    `📦 Ukuran video: ${videoSizeMB}MB, URL: ${videoData.videoUrl}`
-  );
+  console.log(`✅ Data video diterima, mengirim sebagai link...`);
 
   // Buat embed informasi video
   const embed = new EmbedBuilder()
@@ -284,7 +278,7 @@ async function sendVideoToDiscord(interaction, videoData, originalUrl) {
     .setDescription(
       videoData.description.length > 200
         ? videoData.description.substring(0, 197) + "..."
-        : videoData.description
+        : videoData.description || "No description."
     )
     .addFields(
       {
@@ -321,6 +315,19 @@ async function sendVideoToDiscord(interaction, videoData, originalUrl) {
         name: "▶️ Total Views",
         value: formatNumber(videoData.stats.plays),
         inline: true,
+      },
+      {
+        name: "📥 Download Links",
+        value: [
+          `🎬 **[Video Tanpa Watermark](${videoData.videoUrl})**`,
+          videoData.hdVideoUrl ? `📷 [Video HD](${videoData.hdVideoUrl})` : null,
+          videoData.videoUrlWm
+            ? `💧 [Video Dengan Watermark](${videoData.videoUrlWm})`
+            : null,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+        inline: false,
       }
     )
     .setThumbnail(videoData.coverUrl)
@@ -331,85 +338,7 @@ async function sendVideoToDiscord(interaction, videoData, originalUrl) {
     })
     .setTimestamp();
 
-  // Jika ukuran video <= 25MB, kirim langsung ke Discord
-  if (videoSize > 0 && videoSize <= MAX_SIZE_BYTES) {
-    try {
-      console.log(`✅ Mengupload video langsung ke Discord...`);
-
-      // Download video ke buffer
-      const videoResponse = await axios.get(videoData.videoUrl, {
-        responseType: "arraybuffer",
-        timeout: 60000,
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          Referer: "https://tikwm.com/",
-        },
-      });
-
-      const videoBuffer = Buffer.from(videoResponse.data);
-      const fileName = `tiktok_${videoData.author.username}_${videoData.videoId}.mp4`;
-
-      const attachment = new AttachmentBuilder(videoBuffer, {
-        name: fileName,
-        description: videoData.description.substring(0, 100),
-      });
-
-      embed.addFields({
-        name: "📦 File Size",
-        value: `${videoSizeMB}MB (Direct Upload)`,
-        inline: true,
-      });
-
-      await interaction.editReply({
-        embeds: [embed],
-        files: [attachment],
-      });
-
-      console.log(`✅ Video berhasil diupload langsung!`);
-    } catch (uploadError) {
-      console.error("❌ Gagal upload langsung:", uploadError.message);
-      // Fallback ke link
-      await sendAsLinks(interaction, embed, videoData, videoSizeMB);
-    }
-  } else {
-    // Video terlalu besar, kirim sebagai link
-    await sendAsLinks(interaction, embed, videoData, videoSizeMB);
-  }
-}
-
-// ============================================
-// FUNGSI: KIRIM SEBAGAI LINK (FALLBACK)
-// ============================================
-async function sendAsLinks(interaction, embed, videoData, videoSizeMB) {
-  const sizeInfo =
-    videoSizeMB > 0 ? `${videoSizeMB}MB (Terlalu besar untuk upload)` : "Unknown";
-
-  embed.addFields(
-    {
-      name: "📦 File Size",
-      value: sizeInfo,
-      inline: true,
-    },
-    {
-      name: "📥 Download Links",
-      value: [
-        `🎬 [Video Tanpa Watermark](${videoData.videoUrl})`,
-        videoData.hdVideoUrl
-          ? `🎬 [Video HD](${videoData.hdVideoUrl})`
-          : null,
-        videoData.videoUrlWm
-          ? `💧 [Video Dengan Watermark](${videoData.videoUrlWm})`
-          : null,
-      ]
-        .filter(Boolean)
-        .join("\n"),
-      inline: false,
-    }
-  );
-
-  embed.setColor("#FF9900"); // Warna orange untuk link
-
+  // Kirim embed dengan link
   await interaction.editReply({
     embeds: [embed],
   });
